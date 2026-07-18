@@ -1,0 +1,11 @@
+.DS_Store
+.env
+.env.*
+*.env
+**/scitiger.env
+**/__pycache__/
+**/*.py[cod]
+node_modules/
+outputs/
+renders/
+snapshots/

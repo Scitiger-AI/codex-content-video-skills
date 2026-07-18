@@ -1,0 +1,4 @@
+interface:
+  display_name: "Public Hot Signals"
+  short_description: "Collect normalized public trending signals."
+  default_prompt: "Collect public trending signals for my topic."

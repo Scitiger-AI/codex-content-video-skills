@@ -1,0 +1,4 @@
+interface:
+  display_name: "HyperFrames Content Video"
+  short_description: "Render narrated content videos with HyperFrames."
+  default_prompt: "Use $hyperframes-content-video to render my narrated content video from its manifest."

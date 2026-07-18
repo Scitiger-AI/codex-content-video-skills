@@ -1,0 +1,4 @@
+interface:
+  display_name: "Content Video Workflow"
+  short_description: "Produce a reviewed video from topic to render."
+  default_prompt: "Create a video from a topic or script."

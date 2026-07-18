@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Trend Report"
+  short_description: "Retrieve and organize AI trend reports"
+  default_prompt: "Use $ai-trend-report to retrieve the latest AI trend report and summarize its key themes."

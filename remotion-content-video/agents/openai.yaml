@@ -1,0 +1,4 @@
+interface:
+  display_name: "Remotion Content Video"
+  short_description: "Render a narrated content video with Remotion."
+  default_prompt: "Build a Remotion video from my audio and subtitles."

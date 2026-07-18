@@ -1,0 +1,4 @@
+interface:
+  display_name: "Self-Media Script"
+  short_description: "Write evidence-bounded scripts for narrated videos."
+  default_prompt: "Write a production-ready narrated video script."

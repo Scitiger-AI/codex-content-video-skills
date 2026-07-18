@@ -1,0 +1,4 @@
+interface:
+  display_name: "TTS Generate Audio"
+  short_description: "Generate TTS audio via LinkTigerAI service"
+  default_prompt: "Use $tts-generate-audio to synthesize speech audio from this script."

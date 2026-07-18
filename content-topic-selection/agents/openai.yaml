@@ -1,0 +1,4 @@
+interface:
+  display_name: "Content Topic Selection"
+  short_description: "Route sources and choose a video topic."
+  default_prompt: "Find and select a topic for my video."
