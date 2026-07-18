@@ -1,0 +1,11 @@
+Default Reference Voice Notice
+
+This notice applies only to default-reference.mp3. It is not covered by the MIT License that applies to the source code in the containing repository.
+
+The rights holder authorizes public redistribution of this file only when it is unchanged and accompanied by this notice.
+
+Permitted use: generate and share noncommercial narration through the containing TTS skill.
+
+Prohibited use: commercial, sponsored, client, paid, or monetized use; editing, transforming, remixing, or relicensing the reference file; training or fine-tuning a model; and creating another reusable voice model or voice variant. The permitted one-off noncommercial narration synthesis does not authorize any of those prohibited uses.
+
+All other rights are reserved by the rights holder.

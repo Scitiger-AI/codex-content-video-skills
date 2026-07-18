@@ -1,0 +1,5 @@
+Third-Party and Asset Notices
+
+The MIT License in LICENSE applies to this repository's source code. The bundled default reference voice at tts-generate-audio/assets/default-reference.mp3 is excluded from that license and is governed by tts-generate-audio/assets/NOTICE.
+
+The rights holder has authorized the asset's public redistribution only under the terms in that notice. In particular, it may be used to generate noncommercial narration, but it may not be used commercially, for model training or fine-tuning, to create another reusable voice or voice variant, or to modify or relicense the reference asset.
