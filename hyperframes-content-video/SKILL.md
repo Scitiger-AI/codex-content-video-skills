@@ -38,7 +38,12 @@ Read `hyperframes`, `hyperframes-core`, `hyperframes-animation`, `hyperframes-cr
 
 6. Implement every `visual_beat` as an evolving visual explanation. Use diagrams, comparisons, objects, charts, or processes where they clarify the narration. Do not make a sequence of transcript cards. Keep all media local, build a synchronous seekable timeline, and do not use render-time network requests, clocks, random state, CSS transitions, or infinite loops.
 
-7. Run `npx hyperframes check <project_dir> --snapshots`, inspect the snapshots autonomously, and render a still from every visual beat plus the longest subtitle segment with safe-zone overlays. Render those guides only in debug stills or preview mode; never include an overlay, ruler, boundary line, or safe-zone marker in the delivery composition. Correct normal quality findings and rerun the checks; do not request preview approval.
+7. Run `npx hyperframes check <project_dir> --snapshots` and the shared delivery-guide check before rendering. It rejects a visible left-edge bar extending to `visual_content.bottom_y`, which indicates a leaked safe-zone guide. Inspect snapshots autonomously and render a still from every visual beat plus the longest subtitle segment with safe-zone overlays. Render those guides only in debug stills or preview mode; never include an overlay, ruler, boundary line, or safe-zone marker in the delivery composition. Remove or rework any guide finding, then rerun the checks and render; do not request preview approval.
+
+   ```bash
+   python3 "${CODEX_HOME:-$HOME/.codex}/skills/content-video-workflow/scripts/check_delivery_guides.py" \
+     --src <project_dir> --caption-layout outputs/<project>/caption-layout.json
+   ```
 
 8. Render a local MP4 at the manifest FPS and run QC. Do not publish, upload, enqueue, use cloud rendering, or send telemetry as part of this workflow.
 

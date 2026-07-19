@@ -18,7 +18,7 @@ Own the task handoffs, not the domain implementations. Work only from the curren
      --input outputs/<project>/script-package.json --strict
    ```
 4. Before audio production, verify the caller has configured `SCITIGER_API_KEY` in `$CODEX_HOME/scitiger.env`; use `tts-generate-audio` with `script.md` at `tts_rate: 1.0` unless the user supplied another rate, then use `audio-generate-subtitle` with the generated audio and that same `script.md` as `reference_text`.
-5. Build and validate a schema-version-2 `video-manifest.json`. Resolve its caption geometry into `caption-layout.json`; it is the only renderer handoff for safe-zone layout.
+5. Build and validate a schema-version-2 `video-manifest.json`. Resolve its caption geometry into `caption-layout.json`; it is the only renderer handoff for safe-zone layout. Before every delivery render, run `check_delivery_guides.py` against the delivery source and that layout. It rejects a visible left-edge guide whose height matches `visual_content.bottom_y`; remove or rework any finding and rerender automatically. Keep debug-only guides in a separate debug or preview source tree.
 6. Dispatch by explicit user choice: `remotion` -> `remotion-content-video`; `hyperframes` -> `hyperframes-content-video`. Default to HyperFrames only when the user did not choose a renderer.
 7. Return the output video, QC report, source brief, and editable project directory. Never enqueue, publish, upload, or notify a third party.
 
