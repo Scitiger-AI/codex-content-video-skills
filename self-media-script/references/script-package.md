@@ -23,7 +23,9 @@
     "viewer_promise": "",
     "hook_independent_of_discovery": true,
     "source_leakage_check": "passed",
-    "attribution_check": "passed"
+    "attribution_check": "passed",
+    "ending_is_topic_specific": true,
+    "generic_closure_check": "passed"
   },
   "research_boundary": {
     "source_scope": "",
@@ -47,4 +49,4 @@
 }
 ```
 
-`narrative_strategy` records why this topic uses its chosen story pattern; it must not encode a global template. `editorial_review` is an internal preflight record: its `viewer_promise` states what the viewer receives, and its checks confirm that the spoken hook does not reveal topic-discovery metadata or rely on vague authority. `claims[].status` must be `verified`, `uncertain`, or `opinion`. A `verified` claim requires at least one source URL. `visual_beats` must refer to existing chapter IDs and cover every chapter. Every beat requires both `primary_visual` and `secondary_visual`; use a diagram, chart, flow, comparison, counter, or object relation whenever the narration explains a mechanism, trade-off, process, or quantity.
+`narrative_strategy` records why this topic uses its chosen story pattern; it must not encode a global template. `editorial_review` is an internal preflight record: its `viewer_promise` states what the viewer receives, and its checks confirm that the spoken hook does not reveal topic-discovery metadata or rely on vague authority, and that the ending cannot be transplanted unchanged into an unrelated explainer. `claims[].status` must be `verified`, `uncertain`, or `opinion`. A `verified` claim requires at least one source URL. `visual_beats` must refer to existing chapter IDs and cover every chapter. Every beat requires both `primary_visual` and `secondary_visual`; use a diagram, chart, flow, comparison, counter, or object relation whenever the narration explains a mechanism, trade-off, process, or quantity.

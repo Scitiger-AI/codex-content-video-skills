@@ -25,11 +25,12 @@ Create `script-package.json` and `script.md` in the task output directory. Use t
 - Choose a narrative strategy that fits the topic. Use paths such as scenario-to-principle, contrast-to-resolution, claim-to-counterexample, event-to-implication, or question-to-decision framework when they help; they are options, never a required chapter sequence. Do not use a generic "definition -> mechanism -> caveat -> checklist" order unless that sequence is uniquely earned by the topic.
 - Record the chosen strategy, viewer question, and selection reason in `narrative_strategy`. Treat `chapters` as task-specific edit units, not a fixed list of named sections or a required count.
 - Give each chapter a distinct story move: change what the viewer believes, test the previous explanation, reveal a trade-off, or make a decision easier. Do not divide a single textbook explanation into headings and call it a narrative.
+- End by landing a consequence, image, reversal, or unresolved tension that this specific narration has earned. A closing line should fail when transplanted into an unrelated tech explainer. Do not end with a generic "下次看到...", "别只问...", or three-question checklist. A final question is useful only when it sharpens this topic's concrete trade-off rather than summarizing it.
 - Shape requested duration with the amount of narration at the normal TTS rate of `1.0`; do not assume slower speech unless the user explicitly asks for it.
 - Write for narration, not an article. Keep sentences speakable and avoid displaying the narration verbatim as the main visual.
 - Give every chapter a distinct `visual_beat` with a primary information visual and a secondary supporting visual. Explain processes with flows, comparisons with diagrams, and quantities with charts or counters. Only a brief hook or transition may use a text card as the primary visual; a long run of text cards is not a valid visual plan.
 - Include claims requiring fact checks, uncertainty notes, and safety notes. A hot signal must never be the sole source for a substantive claim. A named company configuration, number, paper finding, or performance statement needs a corresponding primary or authoritative source URL in `claims`.
-- Complete `editorial_review` in the script package before handoff. Use it to record the viewer promise and confirm that the hook does not leak discovery metadata or rely on vague attribution.
+- Complete `editorial_review` in the script package before handoff. Use it to record the viewer promise and confirm that the hook does not leak discovery metadata or rely on vague attribution, and that the ending is specific to this narration rather than a generic summary.
 
 Run the validator before handing off:
 

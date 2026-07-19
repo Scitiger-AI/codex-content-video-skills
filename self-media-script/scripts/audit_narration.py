@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit narration for editorial metadata leakage and vague attribution."""
+"""Audit narration for editorial metadata leakage, vague attribution, and generic endings."""
 
 from __future__ import annotations
 
@@ -22,6 +22,12 @@ VAGUE_ATTRIBUTION_PATTERNS = (
     r"(?:学术界|研究界|业内|大家|很多人).{0,12}(?:早就指出|普遍认为|都知道|已经证明)",
     r"(?:有研究|有论文|专家).{0,8}(?:表明|指出|证明|认为)",
 )
+GENERIC_CLOSING_PATTERNS = (
+    r"(?:下次|以后).{0,18}(?:看到|遇到|听到)",
+    r"(?:别|不要)只.{0,18}(?:问|看)",
+    r"更值得(?:问|关注|思考)的是",
+    r"不是.{0,24}(?:唯一答案|全部答案|唯一指标)",
+)
 
 
 def package_narration(value: dict[str, Any]) -> str:
@@ -40,7 +46,7 @@ def matches(patterns: tuple[str, ...], text: str) -> list[str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Audit a narration for source leakage and vague attribution.")
+    parser = argparse.ArgumentParser(description="Audit a narration for source leakage, vague attribution, and generic endings.")
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--input", help="Path to script-package.json")
     source.add_argument("--script", help="Path to a narration Markdown or text file")
@@ -79,6 +85,12 @@ def main() -> int:
         warnings.append({
             "code": "vague_attribution",
             "message": "replace vague authority with a specific source-backed claim or remove it",
+            "match": match,
+        })
+    for match in matches(GENERIC_CLOSING_PATTERNS, narration[-260:]):
+        warnings.append({
+            "code": "generic_closing",
+            "message": "land a topic-specific consequence, image, reversal, or tension instead of generic audience advice",
             "match": match,
         })
 

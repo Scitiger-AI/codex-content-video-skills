@@ -46,7 +46,9 @@ def main():
                 errors.append("editorial_review missing viewer_promise")
             if review.get("hook_independent_of_discovery") is not True:
                 errors.append("editorial_review must confirm hook_independent_of_discovery")
-            for field in ("source_leakage_check", "attribution_check"):
+            if review.get("ending_is_topic_specific") is not True:
+                errors.append("editorial_review must confirm ending_is_topic_specific")
+            for field in ("source_leakage_check", "attribution_check", "generic_closure_check"):
                 if review.get(field) != "passed":
                     errors.append(f"editorial_review {field} must be passed")
     if not isinstance(value.get("chapters"), list) or not value.get("chapters"):
