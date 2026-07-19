@@ -77,10 +77,33 @@ def subtitle_stats(path: Path) -> dict[str, int]:
     }
 
 
+def caption_layout(path: Path, width: int, height: int) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if payload.get("passed") is not True or not isinstance(payload.get("layout"), dict):
+        raise ValueError("caption layout is invalid")
+    layout = payload["layout"]
+    if layout.get("canvas") != {"width": width, "height": height}:
+        raise ValueError("caption layout dimensions do not match the manifest")
+    if not layout.get("captions_enabled"):
+        return layout
+    platform = layout.get("platform_ui_exclusion") or {}
+    caption = layout.get("caption_box") or {}
+    visual = layout.get("visual_content") or {}
+    platform_top = platform.get("top_y")
+    caption_top, caption_bottom = caption.get("top_y"), caption.get("bottom_y")
+    visual_bottom = visual.get("bottom_y")
+    if not all(isinstance(value, int) for value in (platform_top, caption_top, caption_bottom, visual_bottom)):
+        raise ValueError("caption layout has non-integer geometry")
+    if not 0 <= visual_bottom <= caption_top < caption_bottom <= platform_top <= height:
+        raise ValueError("caption layout safe zones are inconsistent")
+    return layout
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run rendered-video QC for a HyperFrames content video.")
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--video", required=True)
+    parser.add_argument("--caption-layout", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--duration-tolerance-seconds", type=float, default=0.1)
     parser.add_argument("--max-tail-seconds", type=float, default=0.75)
@@ -95,6 +118,8 @@ def main() -> int:
         media = manifest.get("media") if isinstance(manifest.get("media"), dict) else {}
         fmt = manifest.get("format") if isinstance(manifest.get("format"), dict) else {}
         captions_enabled = bool((manifest.get("caption_policy") or {}).get("enabled", True))
+        layout = caption_layout(Path(args.caption_layout).expanduser().resolve(), int(fmt.get("width") or 0), int(fmt.get("height") or 0))
+        report["caption_layout"] = layout
         audio_path = resolve_path(manifest_path, str(media.get("audio_path") or ""))
         srt_path = resolve_path(manifest_path, str(media.get("subtitle_srt_path") or ""))
         report["audio"] = str(audio_path)

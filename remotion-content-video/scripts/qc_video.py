@@ -34,6 +34,28 @@ def subtitle_stats(path):
     return {"segment_count": len(captions), "max_characters": max((len(item) for item in captions), default=0)}
 
 
+def caption_layout(path, width, height):
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if payload.get("passed") is not True or not isinstance(payload.get("layout"), dict):
+        raise ValueError("caption layout is invalid")
+    layout = payload["layout"]
+    if layout.get("canvas") != {"width": width, "height": height}:
+        raise ValueError("caption layout dimensions do not match the video")
+    if not layout.get("captions_enabled"):
+        return layout
+    platform = layout.get("platform_ui_exclusion") or {}
+    caption = layout.get("caption_box") or {}
+    visual = layout.get("visual_content") or {}
+    platform_top = platform.get("top_y")
+    caption_top, caption_bottom = caption.get("top_y"), caption.get("bottom_y")
+    visual_bottom = visual.get("bottom_y")
+    if not all(isinstance(value, int) for value in (platform_top, caption_top, caption_bottom, visual_bottom)):
+        raise ValueError("caption layout has non-integer geometry")
+    if not 0 <= visual_bottom <= caption_top < caption_bottom <= platform_top <= height:
+        raise ValueError("caption layout safe zones are inconsistent")
+    return layout
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run basic rendered-video QC for a Remotion content video.")
     parser.add_argument("--video", required=True)
@@ -41,6 +63,7 @@ def main():
     parser.add_argument("--expected-width", type=int, required=True)
     parser.add_argument("--expected-height", type=int, required=True)
     parser.add_argument("--expected-fps", type=float, required=True)
+    parser.add_argument("--caption-layout", required=True)
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
     errors = []
@@ -48,6 +71,7 @@ def main():
     srt = Path(args.srt)
     metadata = {}
     subtitles = {"segment_count": 0, "max_characters": 0}
+    layout = None
     if not video.exists() or video.stat().st_size <= 1024:
         errors.append("video is missing or too small")
     else:
@@ -67,8 +91,12 @@ def main():
         subtitles = subtitle_stats(srt)
         if subtitles["segment_count"] == 0:
             errors.append("SRT has no subtitle segments")
+    try:
+        layout = caption_layout(Path(args.caption_layout), args.expected_width, args.expected_height)
+    except Exception as error:
+        errors.append(f"caption layout failed: {error}")
 
-    report = {"passed": not errors, "video": str(video), "srt": str(srt), "metadata": metadata, "subtitles": subtitles, "errors": errors}
+    report = {"passed": not errors, "video": str(video), "srt": str(srt), "metadata": metadata, "subtitles": subtitles, "caption_layout": layout, "errors": errors}
     output = Path(args.out)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

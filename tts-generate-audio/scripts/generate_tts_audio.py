@@ -24,6 +24,8 @@ DEFAULT_BASE_URL = "https://link.scitiger.cn"
 DEFAULT_POLL_INTERVAL_SECONDS = 2.0
 DEFAULT_TIMEOUT_SECONDS = 1200
 DEFAULT_TTS_RATE = 1.0
+DEFAULT_TARGET_LUFS = -16.0
+DEFAULT_TRUE_PEAK_DBTP = -1.0
 BUNDLED_DEFAULT_REFERENCE_AUDIO = Path(__file__).resolve().parent.parent / "assets" / "default-reference.mp3"
 AUDIO_EXTENSIONS = {"wav", "mp3"}
 
@@ -183,6 +185,31 @@ def effective_rate(args: argparse.Namespace) -> float:
     return rate
 
 
+def normalize_audio(source: Path, target: Path, extension: str, *, target_lufs: float, true_peak_dbtp: float) -> None:
+    if not -30 <= target_lufs <= -8:
+        raise ServiceError("--target-lufs must be between -30 and -8")
+    if not -9 <= true_peak_dbtp <= -0.1:
+        raise ServiceError("--true-peak-dbtp must be between -9 and -0.1")
+    codec = "pcm_s16le" if extension == "wav" else "libmp3lame"
+    limiter = 10 ** (true_peak_dbtp / 20)
+    filter_graph = f"loudnorm=I={target_lufs}:TP={true_peak_dbtp}:LRA=11,alimiter=limit={limiter:.8f}:level=false"
+    command = [
+        "ffmpeg", "-nostdin", "-y", "-v", "error", "-i", str(source), "-af", filter_graph,
+        "-ar", "48000", "-c:a", codec,
+    ]
+    if extension == "mp3":
+        command.extend(["-b:a", "192k"])
+    command.append(str(target))
+    try:
+        subprocess.run(command, check=True, capture_output=True, text=True)
+    except FileNotFoundError as exc:
+        raise ServiceError("ffmpeg is required to create delivery-normalized audio") from exc
+    except subprocess.CalledProcessError as exc:
+        raise ServiceError(f"audio normalization failed: {exc.stderr.strip()}") from exc
+    if not target.is_file() or target.stat().st_size <= 1024:
+        raise ServiceError("audio normalization did not produce a usable file")
+
+
 def completed_result(job: dict[str, Any]) -> dict[str, Any]:
     result = job.get("result")
     return result if isinstance(result, dict) else job
@@ -274,6 +301,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--volume", type=float, default=1.0)
     parser.add_argument("--pitch", type=float, default=0.0)
     parser.add_argument("--output-format", choices=sorted(AUDIO_EXTENSIONS), default="wav")
+    parser.add_argument("--target-lufs", type=float, default=DEFAULT_TARGET_LUFS)
+    parser.add_argument("--true-peak-dbtp", type=float, default=DEFAULT_TRUE_PEAK_DBTP)
     parser.add_argument("--api-key", help="Public SciTiger API key. Prefer --env-file so the key is not exposed in shell history.")
     parser.add_argument("--api-key-env", default="SCITIGER_API_KEY")
     parser.add_argument("--env-file", default=str(default_env_file()), help="Defaults to $CODEX_HOME/scitiger.env.")
@@ -328,9 +357,18 @@ def main(argv: list[str]) -> int:
         result = completed_result(job)
         metadata["tts_poll"] = job_snapshot(job)
         extension = audio_extension(result, args.output_format)
+        raw_audio_path = out_dir / f"tts_{task_id}.source.{extension}"
+        raw_audio_path.write_bytes(resolve_audio_bytes(metadata["base_url"], result, api_key))
         audio_path = out_dir / f"tts_{task_id}.{extension}"
-        audio_path.write_bytes(resolve_audio_bytes(metadata["base_url"], result, api_key))
+        normalize_audio(raw_audio_path, audio_path, extension, target_lufs=args.target_lufs, true_peak_dbtp=args.true_peak_dbtp)
+        metadata["source_audio_path"] = str(raw_audio_path)
         metadata["audio_path"] = str(audio_path)
+        metadata["normalization"] = {
+            "tool": "ffmpeg loudnorm + alimiter",
+            "target_lufs": args.target_lufs,
+            "true_peak_dbtp": args.true_peak_dbtp,
+            "sample_rate": 48000,
+        }
         metadata_path = out_dir / "metadata.json"
         metadata_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(json.dumps({"ok": True, "audio_path": str(audio_path), "tts_task_id": task_id, "metadata_path": str(metadata_path)}, ensure_ascii=False, indent=2))

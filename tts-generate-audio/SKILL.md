@@ -44,15 +44,16 @@ python3 "${CODEX_HOME:-$HOME/.codex}/skills/tts-generate-audio/scripts/generate_
 1. Read text from `--text` or `--text-file`.
 2. Choose a reference audio source: use `--reference-audio` when supplied; otherwise use the bundled `assets/default-reference.mp3`. The public API currently requires reference audio and does not expose a `voice_id` field. Never scan a user directory or select a voice at random.
 3. Set speech speed with `--tts-rate`; when omitted, it is `1.0`. `--rate` is kept as a compatibility alias, but prefer `--tts-rate`.
-4. Submit `/api/v1/tts/jobs`, poll `/api/v1/tts/jobs/{job_id}`, and download the completed audio returned by the public API.
-5. Use the generated audio path from stdout or `metadata.json` as input for the separate `audio-generate-subtitle` skill when subtitles are needed.
+4. Submit `/api/v1/tts/jobs`, poll `/api/v1/tts/jobs`, download the completed audio, and automatically create a 48 kHz delivery file normalized to `-16 LUFS` with a `-1 dBTP` ceiling. Preserve the downloaded source audio for traceability.
+5. Use the normalized `audio_path` from stdout or `metadata.json` as input for the separate `audio-generate-subtitle` skill when subtitles are needed. Do not generate subtitles from the unnormalized source file.
 
 ## Outputs
 
 The script writes:
 
-- `tts_<task_id>.<format>`: generated audio
-- `metadata.json`: request snapshot, public-service config without the API key, task poll result, the resolved voice source, and the bundled asset hash when used
+- `tts_<task_id>.<format>`: normalized delivery audio
+- `tts_<task_id>.source.<format>`: original downloaded API result
+- `metadata.json`: request snapshot, public-service config without the API key, task poll result, normalized audio settings, the resolved voice source, and the bundled asset hash when used
 
 It prints JSON containing `audio_path`, `tts_task_id`, and `metadata_path`.
 

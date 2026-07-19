@@ -70,6 +70,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Stage audio and SRT assets for a HyperFrames content project.")
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--project-dir", required=True)
+    parser.add_argument("--caption-layout", required=True, help="Resolved caption-layout.json from content-video-workflow.")
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 
@@ -87,6 +88,15 @@ def main() -> int:
         srt_source = resolve_path(manifest_path, srt_value)
         if not audio_source.is_file() or not srt_source.is_file():
             raise PreparationError("manifest media files must exist")
+
+        layout_path = Path(args.caption_layout).expanduser().resolve()
+        layout_payload = json.loads(layout_path.read_text(encoding="utf-8"))
+        if layout_payload.get("passed") is not True or not isinstance(layout_payload.get("layout"), dict):
+            raise PreparationError("caption-layout.json is invalid")
+        caption_layout = layout_payload["layout"]
+        canvas = caption_layout.get("canvas") if isinstance(caption_layout.get("canvas"), dict) else {}
+        if canvas != {"width": manifest.get("format", {}).get("width"), "height": manifest.get("format", {}).get("height")}:
+            raise PreparationError("caption-layout.json dimensions do not match the manifest")
 
         project_dir = Path(args.project_dir).expanduser().resolve()
         if not project_dir.is_dir():
@@ -108,13 +118,14 @@ def main() -> int:
             segments_target.write_text(json.dumps(segments, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
         inputs = {
-            "schema_version": 1,
+            "schema_version": 2,
             "audio_src": audio_target.relative_to(project_dir).as_posix(),
             "subtitle_srt_path": srt_target.relative_to(project_dir).as_posix(),
             "subtitle_segments_path": segments_target.relative_to(project_dir).as_posix(),
             "subtitle_segment_count": len(segments),
             "format": manifest.get("format"),
             "caption_policy": manifest.get("caption_policy"),
+            "caption_layout": caption_layout,
         }
         inputs_path = project_dir / "content-inputs.json"
         desired_inputs = json.dumps(inputs, ensure_ascii=False, indent=2) + "\n"
