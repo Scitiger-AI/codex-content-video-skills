@@ -33,6 +33,22 @@ def main():
             errors.append(f"narrative_strategy missing {field}")
     if not isinstance(strategy.get("story_moves"), list) or not strategy["story_moves"]:
         errors.append("narrative_strategy.story_moves must be a non-empty array")
+    else:
+        for index, move in enumerate(strategy["story_moves"]):
+            if not isinstance(move, dict) or not str(move.get("id") or "").strip() or not str(move.get("function") or "").strip():
+                errors.append(f"narrative_strategy.story_moves[{index}] must include id and function")
+    review = value.get("editorial_review")
+    if review is not None:
+        if not isinstance(review, dict):
+            errors.append("editorial_review must be an object")
+        else:
+            if not isinstance(review.get("viewer_promise"), str) or not review["viewer_promise"].strip():
+                errors.append("editorial_review missing viewer_promise")
+            if review.get("hook_independent_of_discovery") is not True:
+                errors.append("editorial_review must confirm hook_independent_of_discovery")
+            for field in ("source_leakage_check", "attribution_check"):
+                if review.get(field) != "passed":
+                    errors.append(f"editorial_review {field} must be passed")
     if not isinstance(value.get("chapters"), list) or not value.get("chapters"):
         errors.append("chapters must be a non-empty array")
     if not isinstance(value.get("visual_beats"), list) or not value.get("visual_beats"):
