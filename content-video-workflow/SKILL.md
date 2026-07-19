@@ -17,7 +17,7 @@ Own the task handoffs, not the domain implementations. Work only from the curren
    python3 "${CODEX_HOME:-$HOME/.codex}/skills/self-media-script/scripts/audit_narration.py" \
      --input outputs/<project>/script-package.json --strict
    ```
-4. Before audio production, verify the caller has configured `SCITIGER_API_KEY` in `$CODEX_HOME/scitiger.env`. Use `tts-generate-audio` with `script.md` at `tts_rate: 1.0` unless the user supplied another rate. The bundled default reference voice is limited to noncommercial narration; for commercial, sponsored, client, paid, or monetized content, require user-provided reference audio with the necessary rights. Then use `audio-generate-subtitle` with the generated audio and that same `script.md` as `reference_text`.
+4. Before audio production, verify the caller has configured `SCITIGER_API_KEY` in `$CODEX_HOME/scitiger.env`; use `tts-generate-audio` with `script.md` at `tts_rate: 1.0` unless the user supplied another rate, then use `audio-generate-subtitle` with the generated audio and that same `script.md` as `reference_text`.
 5. Build and validate `video-manifest.json`. It is the only renderer handoff.
 6. Dispatch by explicit user choice: `remotion` -> `remotion-content-video`; `hyperframes` -> `hyperframes-content-video`. Default to HyperFrames only when the user did not choose a renderer.
 7. Return the output video, QC report, source brief, and editable project directory. Never enqueue, publish, upload, or notify a third party.

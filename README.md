@@ -90,15 +90,10 @@ SCITIGER_API_KEY=sk-ats-...
 
 ## 许可证与默认音色
 
-本仓库代码采用 [MIT License](LICENSE)。
-
-`tts-generate-audio/assets/default-reference.mp3` 不受 MIT License 覆盖，适用单独的 [音色授权声明](tts-generate-audio/assets/NOTICE)：允许原样公开再分发，并允许使用该音色生成非商用旁白；禁止商用、模型训练或微调、创建其他可复用音色或变体、修改参考音频、以及重新授权该音频。
-
-因此，商业、赞助、客户、付费或变现内容必须使用使用者自行提供且已获必要授权的 `--reference-audio`，不能使用包内默认音色。
+本仓库的代码与包含的 `tts-generate-audio/assets/default-reference.mp3` 均采用 [MIT License](LICENSE)。任务使用者可以直接使用默认参考音色；未指定 `--reference-audio` 时，TTS skill 会自动使用它。
 
 ## 安全与分发
 
 - 不要提交 API key、`scitiger.env`、签名媒体 URL、任务产物或本地缓存。
-- 保留 [NOTICE](NOTICE) 与音色授权声明；不要将默认参考音色作为 MIT 代码的一部分重新授权。
 - 热点源、SciTiger 服务及渲染工具仍受各自服务条款和可用性约束。
 - 所有最终产物默认保留本地；发布、上传或通知第三方必须由使用者另行明确授权。
