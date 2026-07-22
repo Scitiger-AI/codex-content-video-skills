@@ -11,7 +11,9 @@ Read `hyperframes`, `hyperframes-core`, `hyperframes-animation`, `hyperframes-cr
 
 ## Build
 
-1. Run the shared manifest validator, then the HyperFrames validator. Require `renderer: "hyperframes"`, existing audio and SRT files, and an FPS supported by HyperFrames. Resolve `caption-layout.json`; it defines the only permitted caption and visual-content boundaries. Do not silently alter the requested dimensions, FPS, or aspect ratio.
+1. Verify the HyperFrames CLI before treating the renderer as unavailable. Run `npx --yes hyperframes@<pinned-version> --help` and allow the first-run dependency setup at least 90 seconds. The `skills` command and normal `init` perform a separate GitHub skills check; a hang there does not prove that rendering is unavailable. If the CLI works but that check blocks, scaffold with the official automation bypass `HYPERFRAMES_SKIP_SKILLS=1 npx --yes hyperframes@<pinned-version> init ...`. Record the skills-bootstrap failure in task metadata, but continue with the local CLI. If the CLI itself cannot initialize or render after this bypass, stop and report the renderer block. Never replace a user-selected HyperFrames render with FFmpeg, Remotion, or another renderer without the user's explicit renderer change.
+
+2. Run the shared manifest validator, then the HyperFrames validator. Require `renderer: "hyperframes"`, existing audio and SRT files, and an FPS supported by HyperFrames. Resolve `caption-layout.json`; it defines the only permitted caption and visual-content boundaries. Do not silently alter the requested dimensions, FPS, or aspect ratio.
 
    ```bash
    python3 "${CODEX_HOME:-$HOME/.codex}/skills/content-video-workflow/scripts/validate_video_manifest.py" \
@@ -22,9 +24,9 @@ Read `hyperframes`, `hyperframes-core`, `hyperframes-animation`, `hyperframes-cr
      --manifest outputs/<project>/video-manifest.json --out outputs/<project>/caption-layout.json
    ```
 
-2. Resolve `project_dir` relative to the manifest. Reuse a supplied HyperFrames project without overwriting unrelated work. Otherwise scaffold an empty project with `npx hyperframes init <project_dir> --non-interactive --example blank` and the matching standard resolution preset. For a non-preset size, author the exact manifest dimensions in the composition root after scaffolding.
+3. Resolve `project_dir` relative to the manifest. Reuse a supplied HyperFrames project without overwriting unrelated work. Otherwise scaffold an empty project with `npx hyperframes init <project_dir> --non-interactive --example blank` and the matching standard resolution preset. When the skills bootstrap is the only blocked operation, set `HYPERFRAMES_SKIP_SKILLS=1` for this command. For a non-preset size, author the exact manifest dimensions in the composition root after scaffolding.
 
-3. Stage the supplied narration and subtitles into the project. This creates only `content-media/` and `content-inputs.json`; it never modifies the source media or the manifest.
+4. Stage the supplied narration and subtitles into the project. This creates only `content-media/` and `content-inputs.json`; it never modifies the source media or the manifest.
 
    ```bash
    python3 "${CODEX_HOME:-$HOME/.codex}/skills/hyperframes-content-video/scripts/prepare_content_assets.py" \
@@ -32,20 +34,20 @@ Read `hyperframes`, `hyperframes-core`, `hyperframes-animation`, `hyperframes-cr
      --caption-layout outputs/<project>/caption-layout.json
    ```
 
-4. Build one standalone `index.html` composition. Set its fixed width, height, FPS, and `data-duration` from the manifest and probed narration duration. Keep the staged `<audio>` as a direct child of the composition root for the full narration; HyperFrames owns its playback. Read the staged `caption_layout` from `content-inputs.json`; captions must stay in `caption_box` and all non-caption content must end above `visual_content.bottom_y`.
+5. Build one standalone `index.html` composition. Set its fixed width, height, FPS, and `data-duration` from the manifest and probed narration duration. Keep the staged `<audio>` as a direct child of the composition root for the full narration; HyperFrames owns its playback. Read the staged `caption_layout` from `content-inputs.json`; captions must stay in `caption_box` and all non-caption content must end above `visual_content.bottom_y`.
 
-5. Parse the staged SRT or `subtitle-segments.json` at build time and render exactly one active caption segment at a time. Preserve timestamps and do not write a second independent transcript. Derive the caption box bottom, maximum height, and line limit from `caption_layout`; keep captions distinct from the primary visual. Do not continuously rotate readable text, and deliberately break or measure Chinese visible text so a phrase cannot wrap at an arbitrary character.
+6. Parse the staged SRT or `subtitle-segments.json` at build time and render exactly one active caption segment at a time. Preserve timestamps and do not write a second independent transcript. Derive the caption box bottom, maximum height, and line limit from `caption_layout`; keep captions distinct from the primary visual. Do not continuously rotate readable text, and deliberately break or measure Chinese visible text so a phrase cannot wrap at an arbitrary character.
 
-6. Implement every `visual_beat` as an evolving visual explanation. Use diagrams, comparisons, objects, charts, or processes where they clarify the narration. Do not make a sequence of transcript cards. Keep all media local, build a synchronous seekable timeline, and do not use render-time network requests, clocks, random state, CSS transitions, or infinite loops.
+7. Implement every `visual_beat` as an evolving visual explanation. Use diagrams, comparisons, objects, charts, or processes where they clarify the narration. Do not make a sequence of transcript cards. Keep all media local, build a synchronous seekable timeline, and do not use render-time network requests, clocks, random state, CSS transitions, or infinite loops.
 
-7. Run `npx hyperframes check <project_dir> --snapshots` and the shared delivery-guide check before rendering. It rejects a visible left-edge bar extending to `visual_content.bottom_y`, which indicates a leaked safe-zone guide. Inspect snapshots autonomously and render a still from every visual beat plus the longest subtitle segment with safe-zone overlays. Render those guides only in debug stills or preview mode; never include an overlay, ruler, boundary line, or safe-zone marker in the delivery composition. Remove or rework any guide finding, then rerun the checks and render; do not request preview approval.
+8. Run `npx hyperframes check <project_dir> --snapshots` and the shared delivery-guide check before rendering. It rejects a visible left-edge bar extending to `visual_content.bottom_y`, which indicates a leaked safe-zone guide. Inspect snapshots autonomously and render a still from every visual beat plus the longest subtitle segment with safe-zone overlays. Render those guides only in debug stills or preview mode; never include an overlay, ruler, boundary line, or safe-zone marker in the delivery composition. Remove or rework any guide finding, then rerun the checks and render; do not request preview approval.
 
    ```bash
    python3 "${CODEX_HOME:-$HOME/.codex}/skills/content-video-workflow/scripts/check_delivery_guides.py" \
      --src <project_dir> --caption-layout outputs/<project>/caption-layout.json
    ```
 
-8. Render a local MP4 at the manifest FPS and run QC. Do not publish, upload, enqueue, use cloud rendering, or send telemetry as part of this workflow.
+9. Render a local MP4 at the manifest FPS and run QC. Do not publish, upload, enqueue, use cloud rendering, or send telemetry as part of this workflow. A structurally valid non-HyperFrames fallback is not a completed render for this skill.
 
    ```bash
    npx hyperframes render <project_dir> --format mp4 --fps <manifest-fps> --quality high --output <video-path>
